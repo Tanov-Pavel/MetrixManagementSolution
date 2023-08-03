@@ -10,6 +10,7 @@ using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 using Client.Metrix;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Client
 {
@@ -17,9 +18,20 @@ namespace Client
     {
         public static PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         public static PerformanceCounter ramCounterAvailable = new PerformanceCounter("Memory", "Available MBytes");
+        private HubConnection connection;
+
+        public WMetrix(HubConnection hubConnection)
+        {
+            connection = hubConnection;
+        }
+
+        public WMetrix()
+        {
+        }
+
         public void GetMetrix()
         {
-           ObjectQuery winQuery = new ObjectQuery("SELECT * FROM Win32_OperatingSystem");
+            ObjectQuery winQuery = new ObjectQuery("SELECT * FROM Win32_OperatingSystem");
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(winQuery);
 
             foreach (ManagementObject item in searcher.Get())
@@ -38,7 +50,24 @@ namespace Client
             }
 
             Console.WriteLine("Загруженность CPU: " + cpuCounter.NextValue() + " %");
+
+            var ramMetrics = GetRamMetrics();
+            connection.SendAsync("ReceiveMessage", "RAM", ramMetrics);
+
+            var cpuMetrics = GetCpuMetrics();
+            connection.SendAsync("ReceiveMessage", "CPU", cpuMetrics);
         }
 
+        public string GetRamMetrics()
+        {
+            var availableRam = ramCounterAvailable.NextValue(); 
+            return $"Доступная память: {availableRam} MB";
+        }
+
+        public string GetCpuMetrics()
+        {
+            var cpuUsage = cpuCounter.NextValue(); 
+            return $"Загруженность процессора: {cpuUsage} %";
+        }
     }
 }

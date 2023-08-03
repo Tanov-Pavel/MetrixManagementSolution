@@ -221,20 +221,32 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
     public void Create(T item)
     {
         var tableName = GetTableName();
-        string result = MapEntityAnnotations(item);
-        string columns = GetColumnNames(item);
-        var sql = $"INSERT INTO public.{tableName}({columns}) values ({result})";
+        var columns = GetColumnNames(item);
+        var values = MapEntityAnnotations(item);
+        var sql = $"INSERT INTO public.{tableName}({columns}) VALUES ({values})";
+
         using (var connection = new NpgsqlConnection(_connectionString))
         {
-
-            DbCommand command = (DbCommand)connection.CreateCommand();
+            DbCommand command = connection.CreateCommand();
             command.CommandText = sql;
             command.CommandType = CommandType.Text;
 
             connection.Open();
 
-            DbDataReader reader = command.ExecuteReader();
+            // Bind the parameter values
+            foreach (var property in item.GetType().GetProperties())
+            {
+                string columnName = property.GetCustomAttribute<ColumnAttribute>()?.Name;
+                if (!string.IsNullOrEmpty(columnName))
+                {
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = columnName;
+                    parameter.Value = property.GetValue(item) ?? DBNull.Value;
+                    command.Parameters.Add(parameter);
+                }
+            }
 
+            command.ExecuteNonQuery();
         }
     }
 

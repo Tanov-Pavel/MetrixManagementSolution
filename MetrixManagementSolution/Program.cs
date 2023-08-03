@@ -9,8 +9,7 @@ using Microsoft.OpenApi.Models;
 using Repository;
 using Repository.Repositories;
 using Repository.Repositories.Interfaces;
-
-
+using TestTask;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,8 +39,7 @@ var app = builder.Build();
 
     app.UseEndpoints(endpoints =>
     {
-        endpoints.MapControllers();
-        endpoints.MapHub<TestTask.SignalRChat>("/chat"); 
+        endpoints.MapHub<SignalRChat>("/chat");
     });
 }
 if (app.Environment.IsDevelopment())

@@ -21,6 +21,8 @@ namespace TestTask.Controllers
             _metricRepository = metricRepository;
         }
 
+     
+
         [HttpGet("list")]
         public IQueryable<Metric> Get()
         {

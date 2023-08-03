@@ -24,14 +24,14 @@ public class MetricRepository : AbstractRepository<Metric>, IMetricRepository
         {
             Id = reader.GetGuid(0),
             IpAddress = reader.GetString(1),
-            DiskSpace = reader.GetInt32(2),
-            Cpu = reader.GetDouble(3),
-            RamSpaceFree = reader.GetInt32(4),
-            RamSpaceTotal = reader.GetInt32(5),
-            IsDeleted = reader.GetBoolean(6),
-            CreateDate = reader.GetDateTime(7),
-            UpdateDate = !reader.IsDBNull(8) ? reader.GetDateTime(8) : null,
-            DeleteDate = !reader.IsDBNull(9) ? reader.GetDateTime(9) : null
+            //DiskSpace = reader.GetDouble(2),
+            Cpu = reader.GetDouble(2),
+            RamSpaceFree = reader.GetDouble(3),
+            RamSpaceTotal = reader.GetDouble(4),
+            IsDeleted = reader.GetBoolean(5),
+            CreateDate = reader.GetDateTime(6),
+            UpdateDate = !reader.IsDBNull(7) ? reader.GetDateTime(7) : null,
+            DeleteDate = !reader.IsDBNull(8) ? reader.GetDateTime(8) : null
         };
         return result;
     }
