@@ -39,5 +39,6 @@ namespace Client
 
             Console.WriteLine("Загруженность CPU: " + cpuCounter.NextValue() + " %");
         }
+
     }
 }

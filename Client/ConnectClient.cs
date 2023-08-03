@@ -10,7 +10,7 @@ namespace SignalRConsoleApp
         {
 
             var connection = new HubConnectionBuilder()
-            .WithUrl(new Uri("http://127.0.0.1:8088/chat"))
+            .WithUrl(new Uri("http://localhost/chat"))
             .WithAutomaticReconnect(new[]
             { TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromSeconds(10) }
             )
