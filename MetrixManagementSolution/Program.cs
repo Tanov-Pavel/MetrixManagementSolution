@@ -1,19 +1,14 @@
-using Domain;
-using Grpc.Core;
-using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Repository;
 using Repository.Repositories;
 using Repository.Repositories.Interfaces;
-
-
+using TestTask;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -30,21 +25,21 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Metrix API V1");
-
     });
 }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<SignalRChat>("/metrics");
+});
+
 app.Run();
-
-
-
-
 
 
