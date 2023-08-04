@@ -2,24 +2,15 @@
 namespace Repository;
 
 using Domain;
-using Microsoft.VisualBasic;
 using Npgsql;
-using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
-using static Npgsql.PostgresTypes.PostgresCompositeType;
-using static Npgsql.Replication.PgOutput.Messages.RelationMessage;
 
 public abstract class AbstractRepository<T> : IRepository<T> where T : PersistentObject
 {
@@ -28,18 +19,13 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
 
     public string GetColumnNames(T entity)
     {
-        var columns = entity.GetType()
+        var columns = entity.GetType()  
         .GetProperties()
-        .Where(p => p.CustomAttributes.Any(ca => ca.AttributeType.Name.Equals(nameof(ColumnAttribute))))
-        .Select(p =>
-        {
-            var columnAttr = p.CustomAttributes.FirstOrDefault(ca => ca.AttributeType.Name.Equals(nameof(ColumnAttribute)));
-            string columnName = columnAttr.ConstructorArguments[0].Value.ToString();
-            return columnName;
-        })
         .ToList();
-
-        return string.Join(",", columns);
+        List<string> columnsName = new List<string>();
+        columns.ForEach(e => columnsName.Add(e.Name));
+        columnsName.Remove("id");
+        return string.Join(",", columnsName);
     }
 
     protected string GetTableName()
@@ -62,7 +48,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
             }).First();
     }
 
-    public string MapEntity(T entity)
+    public string MapEntityAnnotations(T entity)
     {
         var properties = entity.GetType().GetProperties();
         string result = "";
@@ -119,7 +105,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
         return sql;
     }
 
-    public string MapEntityAnnotations(T entity)
+    public string MapUpdateValues(T entity)
     {
         var properties = entity.GetType().GetProperties();
         string result = "";
@@ -143,17 +129,14 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
             var value = property.GetValue(entity);
             if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(string))
             {
-                result += "'" + value + "'";
+                result += $"{property.Name} = '{value}',";
             }
             else
             {
-                result += (value ?? "null");
+                result += $"{property.Name} = {value},";
             }
-
-            if (properties.Last() != property)
-                result = result + ",";
         }
-        return result;
+        return result.TrimEnd(',');
     }
 
     public virtual IQueryable<T> GetAll()
@@ -234,7 +217,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
             connection.Open();
 
             // Bind the parameter values
-            foreach (var property in item.GetType().GetProperties())
+            foreach (var property in item.GetType().GetProperties().ToList())
             {
                 string columnName = property.GetCustomAttribute<ColumnAttribute>()?.Name;
                 if (!string.IsNullOrEmpty(columnName))
@@ -253,7 +236,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
     public void Delete(T entity)
     {
         var tableName = GetTableName();
-        var sql = $"DELETE From public.{tableName} WHERE id = '{entity.Id}'";
+        var sql = $"DELETE From public.{tableName} WHERE id = '{entity.id}'";
         using (var connection = new NpgsqlConnection(_connectionString))
         {
             DbCommand command = (DbCommand)connection.CreateCommand();
@@ -263,7 +246,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
             DbDataReader reader = command.ExecuteReader();
         }
     }
-    //
+    
     public virtual IQueryable<T> Get()
     {
         IList<T> metrics = new List<T>();

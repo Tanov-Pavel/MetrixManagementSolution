@@ -10,9 +10,9 @@
     <PackageReference Include="AngularJs.SignalR.Hub" Version="1.6.3" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
     <PackageReference Include="Microsoft.AspNet.SignalR.SelfHost" Version="2.4.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="6.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Connections.Common" Version="7.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8">
       <PrivateAssets>all</PrivateAssets>
@@ -22,8 +22,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

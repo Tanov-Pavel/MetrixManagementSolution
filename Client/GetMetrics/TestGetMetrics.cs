@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace Client
+namespace Client.GetMetrix
 {
-    public class TestGetMetrix
+    public class TestGetMetrics
     {
         public static string getUnixMemory()
         {

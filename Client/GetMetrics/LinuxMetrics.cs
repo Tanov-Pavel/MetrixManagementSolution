@@ -1,10 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using Client.Metrix;
 
-namespace Client.Metrix
+namespace Client.GetMetrix
 {
-    public class LinuxMetrix : ImetricsRepository
+    public class LinuxMetrics : ImetricsRepository
     {
         private static string GetProcInfo(string path)
         {

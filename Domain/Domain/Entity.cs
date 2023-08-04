@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 public abstract class Entity<TId>
 {
-    public virtual TId Id { get; set; }
+    public virtual TId id { get; set; }
     [Column("is_deleted")]
-    public virtual bool IsDeleted { get; set; }
+    public virtual bool is_deleted { get; set; }
     [Column("create_date")]
-    public virtual DateTime CreateDate { get; set; } = DateTime.Now;
+    public virtual DateTime create_date { get; set; } = DateTime.Now;
     [Column("update_date")]
-    public virtual DateTime? UpdateDate { get; set; }
+    public virtual DateTime? update_date { get; set; }
     [Column("delete_date")]
-    public virtual DateTime? DeleteDate { get; set; }
+    public virtual DateTime? delete_date { get; set; }
 
     public override bool Equals(object obj)
     {
@@ -23,7 +23,7 @@ public abstract class Entity<TId>
     }
     private static bool IsTransient(Entity<TId> obj)
     {
-        return obj != null && Equals(obj.Id, default(TId));
+        return obj != null && Equals(obj.id, default(TId));
     }
     private Type GetUnproxiedType()
     {
@@ -38,7 +38,7 @@ public abstract class Entity<TId>
         if (ReferenceEquals(this, other))
             return true;
 
-        if (!IsTransient(this) && !IsTransient(other) && Equals(Id, other.Id))
+        if (!IsTransient(this) && !IsTransient(other) && Equals(id, other.id))
         {
             var otherType = other.GetUnproxiedType();
             var thisType = GetUnproxiedType();
@@ -49,8 +49,8 @@ public abstract class Entity<TId>
     }
     public override int GetHashCode()
     {
-        if (Equals(Id, default(TId)))
+        if (Equals(id, default(TId)))
             return base.GetHashCode();
-        return Id.GetHashCode();
+        return id.GetHashCode();
     }
 }

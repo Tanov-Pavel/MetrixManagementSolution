@@ -1,31 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Common;
-using System.Data;
+﻿
 using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
 using Client.Metrix;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace Client
+namespace Client.GetMetrix
 {
-    public class WMetrix : ImetricsRepository
+    public class WMetrics : ImetricsRepository
     {
         public static PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         public static PerformanceCounter ramCounterAvailable = new PerformanceCounter("Memory", "Available MBytes");
         private HubConnection connection;
 
-        public WMetrix(HubConnection hubConnection)
+        public WMetrics(HubConnection hubConnection)
         {
             connection = hubConnection;
         }
 
-        public WMetrix()
+        public WMetrics()
         {
         }
 
@@ -60,13 +52,13 @@ namespace Client
 
         public string GetRamMetrics()
         {
-            var availableRam = ramCounterAvailable.NextValue(); 
+            var availableRam = ramCounterAvailable.NextValue();
             return $"Доступная память: {availableRam} MB";
         }
 
         public string GetCpuMetrics()
         {
-            var cpuUsage = cpuCounter.NextValue(); 
+            var cpuUsage = cpuCounter.NextValue();
             return $"Загруженность процессора: {cpuUsage} %";
         }
     }
