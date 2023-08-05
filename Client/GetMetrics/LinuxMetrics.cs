@@ -1,4 +1,7 @@
 ﻿using Client.Metrix;
+using DTO.DTO;
+using System.Net;
+using System;
 
 namespace Client.GetMetrix
 {
@@ -19,7 +22,7 @@ namespace Client.GetMetrix
             }
         }
 
-        public void GetMetrix()
+        public CreateMetricDto GetMetrix()
         {
             Console.WriteLine("Процессор:");
             double cpuUsage = 0;
@@ -74,6 +77,11 @@ namespace Client.GetMetrix
                     Console.WriteLine($"Состояние диска {drive.Name}: Свободно {freeSpaceGB:0.00} GB | Общий размер {totalSizeGB:0.00} GB");
                 }
             }
+
+            CreateMetricDto metricDto = new CreateMetricDto();
+          
+
+            return metricDto;
         }
     }
 }

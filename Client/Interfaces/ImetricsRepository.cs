@@ -1,7 +1,9 @@
-﻿namespace Client.Metrix
+﻿using DTO.DTO;
+
+namespace Client.Metrix
 {
     public interface ImetricsRepository
     {
-        void GetMetrix();
+        CreateMetricDto GetMetrix();
     }
 }

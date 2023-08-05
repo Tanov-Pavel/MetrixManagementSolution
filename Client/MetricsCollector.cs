@@ -1,63 +1,68 @@
 ﻿using Client;
+using Client.GetMetrix;
 using Client.Metrix;
+using DTO.DTO;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
-WMetrix wMetrix = new WMetrix();
-LinuxMetrix linuxMetrix = new LinuxMetrix();
+WMetrics wMetrics = new WMetrics();
+LinuxMetrics linuxMetrics = new LinuxMetrics();
+
 short time = 5000;
 
 var connection = new HubConnectionBuilder()
-           .WithUrl(new Uri("http://127.0.0.1:8088/chat"))
-           .WithAutomaticReconnect(new[]
-           { TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromSeconds(10)})
-           .Build();
+            .WithUrl("http://localhost:8088/chat")
+            .Build();
+connection.StartAsync().Wait();
 
-connection.On<string, string>("ReceiveMessage", (user, message) =>
-{
-    Console.WriteLine(user + message);
-});
+CreateMetricDto createMetricDto = new CreateMetricDto();
 
-try
-{
-    await connection.StartAsync();
-}
-catch (Exception ex)
-{
-    Console.WriteLine(ex.ToString());
-}
-
-Console.ReadLine();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     while (true)
     {
-        wMetrix.GetMetrix();
-        Console.WriteLine();
-        Thread.Sleep(time);
-        Console.Clear();
-
-        // Отправляем метрики RAM и CPU на сервер SignalR
-        await connection.SendAsync("ReceiveMessage", "RAM", wMetrix.GetRamMetrics());
-        await connection.SendAsync("ReceiveMessage", "CPU", wMetrix.GetCpuMetrics());
-
         Console.WriteLine("Windows");
+        createMetricDto = wMetrics.GetMetrix();
+        Console.WriteLine();
+        Thread.Sleep(5000);
+        var jsonmetric = JsonSerializer.Serialize(createMetricDto);
+        Console.WriteLine(jsonmetric);
+        connection.SendAsync("ReceiveMetrics", jsonmetric);
+
+        connection.InvokeCoreAsync("SendMetrics", args: new[]
+        { jsonmetric });
+
+        connection.On<string>("ReceiveMessage", (message) =>
+        {
+            Console.WriteLine(message);
+        });
+        Console.ReadKey();
     }
 }
-
 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 {
     while (true)
     {
-        linuxMetrix.GetMetrix();
-        Console.WriteLine();
-        Thread.Sleep(time);
-        Console.Clear();
+        //Console.WriteLine("Linux");
+        //createMetricDto.GetMetrix();
+        //Console.WriteLine();
+        //Thread.Sleep(5000);
+        var jsonmetric = JsonSerializer.Serialize(createMetricDto);
+        Console.WriteLine(jsonmetric);
+        connection.SendAsync("ReceiveMetrics", jsonmetric);
 
-        // Отправляем метрики RAM и CPU на сервер SignalR
-       // await connection.SendAsync("ReceiveMessage", "RAM", linuxMetrix.GetRamMetrics());
-       // await connection.SendAsync("ReceiveMessage", "CPU", linuxMetrix.GetCpuMetrics());
+        connection.InvokeCoreAsync("SendMetrics", args: new[]
+        { jsonmetric });
 
-        Console.WriteLine("Linux");
+        connection.On<string>("ReceiveMessage", (message) =>
+        {
+            Console.WriteLine(message);
+        });
+        Console.ReadKey();
     }
+
+    
+
+    
 }

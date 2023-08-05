@@ -1,7 +1,10 @@
-﻿
+﻿using System;
 using System.Diagnostics;
 using System.Management;
+using System.Net.NetworkInformation;
+using System.Text.Json;
 using Client.Metrix;
+using DTO.DTO;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Client.GetMetrix
@@ -21,14 +24,16 @@ namespace Client.GetMetrix
         {
         }
 
-        public void GetMetrix()
+        public CreateMetricDto GetMetrix()
         {
             ObjectQuery winQuery = new ObjectQuery("SELECT * FROM Win32_OperatingSystem");
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(winQuery);
 
+            int memoryKb = 0;
+
             foreach (ManagementObject item in searcher.Get())
             {
-                var memoryKb = Convert.ToInt32(item["TotalVisibleMemorySize"].ToString());
+                memoryKb = Convert.ToInt32(item["TotalVisibleMemorySize"].ToString());
                 Console.WriteLine("Показатели RAM " + "Cвободно " + ramCounterAvailable.NextValue() + " MB" + " | " + "Общий размер " + memoryKb / 1024 + " MB");
             }
 
@@ -43,23 +48,36 @@ namespace Client.GetMetrix
 
             Console.WriteLine("Загруженность CPU: " + cpuCounter.NextValue() + " %");
 
-            var ramMetrics = GetRamMetrics();
-            connection.SendAsync("ReceiveMessage", "RAM", ramMetrics);
+            string ipAddress = GetIPAddress();
+            Console.WriteLine("IP-адрес: " + ipAddress);
 
-            var cpuMetrics = GetCpuMetrics();
-            connection.SendAsync("ReceiveMessage", "CPU", cpuMetrics);
+
+            CreateMetricDto metricDto = new CreateMetricDto(
+                ipAddress,
+                cpuCounter.NextValue(),
+                ramCounterAvailable.NextValue(),
+                ramCounterAvailable.NextValue() + memoryKb / 1024);
+
+            return metricDto;
         }
-
-        public string GetRamMetrics()
+        private string GetIPAddress()
         {
-            var availableRam = ramCounterAvailable.NextValue();
-            return $"Доступная память: {availableRam} MB";
-        }
+            string? ipAddress = "";
 
-        public string GetCpuMetrics()
-        {
-            var cpuUsage = cpuCounter.NextValue();
-            return $"Загруженность процессора: {cpuUsage} %";
+            NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface networkInterface in networkInterfaces)
+            {
+                if (networkInterface.OperationalStatus == OperationalStatus.Up)
+                {
+                    ipAddress = networkInterface.GetIPProperties().UnicastAddresses
+                        .FirstOrDefault(ip => ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.Address.ToString();
+
+                    if (!string.IsNullOrEmpty(ipAddress))
+                        break;
+                }
+            }
+
+            return ipAddress;
         }
     }
 }

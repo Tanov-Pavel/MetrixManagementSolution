@@ -1,5 +1,7 @@
 ﻿using Domain.Domain;
 using DTO.DTO;
+using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Repositories;
 using Repository.Repositories.Interfaces;
@@ -9,15 +11,14 @@ namespace TestTask.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class MetricsController : ControllerBase
+    public class MetricsController : Controller
     {
 
-        private readonly ILogger<MetricsController> _logger;
         private readonly IMetricsRepository _metricRepository;
 
-        public MetricsController(ILogger<MetricsController> logger, IMetricsRepository metricRepository)
+
+        public MetricsController(ILogger<MetricsController> logger, IMetricsRepository metricRepository, IHubContext<SignalRChat> messhubContext)
         {
-            _logger = logger;
             _metricRepository = metricRepository;
         }
 
@@ -26,6 +27,7 @@ namespace TestTask.Controllers
         {
             var metrics = _metricRepository.GetAll();
             return metrics;
+
         }
 
         [HttpGet]
@@ -54,16 +56,21 @@ namespace TestTask.Controllers
         }
 
         [HttpPost]
-        public OkResult Post([FromBody] CreateMetricDto request)
+        public IActionResult Post([FromBody] CreateMetricDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid model");
+            }
+
             var metric = new Metrics
             {
                 ip_address = request.ip_address,
                 cpu = request.cpu,
                 ram_free = request.ram_free,
                 ram_total = request.ram_total
-
             };
+
             _metricRepository.Create(metric);
             return Ok();
         }
@@ -71,7 +78,7 @@ namespace TestTask.Controllers
         [HttpDelete]
         public OkResult Delete(Guid id)
         {
-            var objec = _metricsRepository.GetAll()
+            var objec = _metricRepository.GetAll()
                 .Where(x => x.id == id)
                 .FirstOrDefault();
 
@@ -79,5 +86,14 @@ namespace TestTask.Controllers
 
             return Ok();
         }
+        [HttpPost("updatePeriod")]
+        public IActionResult UpdatePeriod(long periodInMillSeconds)
+        {
+            var time = periodInMillSeconds;
+
+
+            return Ok();
+        }
+
     }
 }

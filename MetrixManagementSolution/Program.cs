@@ -1,5 +1,7 @@
+using Domain.Domain;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.OpenApi.Models;
+using Repository;
 using Repository.Repositories;
 using Repository.Repositories.Interfaces;
 
@@ -18,26 +20,17 @@ namespace TestTask
             });
 
             builder.Services.AddSignalR();
-            builder.Services.AddScoped<IMetricsRepository, MetricsRepository>();
-
             var app = builder.Build();
 
-            void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-            {
-                if (env.IsDevelopment())
-                {
-                    app.UseDeveloperExceptionPage();
-                }
-
-                app.UseHttpsRedirection();
-                app.UseRouting();
-
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapHub<SignalRChat>("/chat");
-                    endpoints.MapControllers();
-                });
-            }
+            // void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+            //{
+            //    if (env.IsDevelopment())
+            //    {
+            //        app.UseDeveloperExceptionPage();
+            //    }
+            //    app.UseHttpsRedirection();
+            //    app.UseRouting();
+            //}
 
             if (app.Environment.IsDevelopment())
             {
@@ -48,17 +41,12 @@ namespace TestTask
                 });
             }
 
+            app.MapHub<SignalRChat>("/chat");
+
             app.MapControllers();
 
-            var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-            var hubContext = app.Services.GetRequiredService<IHubContext<SignalRChat>>();
-
-            hubContext.Clients.All.SendAsync("ReceiveMetrics", "Сервер SignalR запущен и готов к подключениям.");
-
-            lifetime.ApplicationStopping.Register(() =>
-            {
-                hubContext.Clients.All.SendAsync("ReceiveMetrics", "Сервер SignalR остановлен.");
-            });
+            //var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+            //var hubContext = app.Services.GetRequiredService<IHubContext<SignalRChat>>();
 
             app.Run();
         }
