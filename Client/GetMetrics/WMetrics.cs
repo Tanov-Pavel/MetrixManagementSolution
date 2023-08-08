@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
-using System.Text.Json;
 using Client.Metrix;
 using DTO.DTO;
-using Microsoft.AspNetCore.SignalR.Client;
+using System.IO;
+using Domain.Domain;
+using System.Xml.Linq;
 
 namespace Client.GetMetrix
 {
@@ -13,53 +15,75 @@ namespace Client.GetMetrix
     {
         public static PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         public static PerformanceCounter ramCounterAvailable = new PerformanceCounter("Memory", "Available MBytes");
-        private HubConnection connection;
 
-        public WMetrics(HubConnection hubConnection)
-        {
-            connection = hubConnection;
-        }
-
-        public WMetrics()
-        {
-        }
 
         public CreateMetricDto GetMetrix()
         {
-            ObjectQuery winQuery = new ObjectQuery("SELECT * FROM Win32_OperatingSystem");
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(winQuery);
+            
+            int processorCount = Environment.ProcessorCount;      
+            long totalMemory = GetTotalPhysicalMemory();
+            long usedMemory = Process.GetProcesses().Sum(x => x.WorkingSet64);
 
-            int memoryKb = 0;
+            int availableMemory = (int)ramCounterAvailable.NextValue();
 
-            foreach (ManagementObject item in searcher.Get())
+            long freeMemory = totalMemory - usedMemory;
+
+            Console.WriteLine("Processors count: " + processorCount);
+            Console.WriteLine("Total RAM: " + totalMemory / (1024 * 1024) + " MB");
+            Console.WriteLine("Used memory: " + usedMemory / (1024 * 1024) + " MB");
+            Console.WriteLine("Free memory: " + freeMemory / (1024 * 1024) + " MB");
+            Console.WriteLine("Available memory: " + availableMemory + " MB");
+
+            DriveInfo[] drives = DriveInfo.GetDrives();
+            List<Disk_spaces> disks = new List<Disk_spaces>();
+            string ipAddress = GetIPAddress();
+
+            foreach (DriveInfo drive in drives)
             {
-                memoryKb = Convert.ToInt32(item["TotalVisibleMemorySize"].ToString());
-                Console.WriteLine("Показатели RAM " + "Cвободно " + ramCounterAvailable.NextValue() + " MB" + " | " + "Общий размер " + memoryKb / 1024 + " MB");
-            }
-
-            DriveInfo[] allDrives = DriveInfo.GetDrives();
-            foreach (DriveInfo Drive in allDrives)
-            {
-                if (Drive.IsReady == true)
+                if (drive.IsReady)
                 {
-                    Console.WriteLine("Состояния диска " + Drive.Name + " " + "Свободно " + Drive.TotalFreeSpace / 1024 / 1024 / 1024 + " GB" + " | " + "Общий размер " + Drive.TotalSize / 1024 / 1024 / 1024 + " GB");
+                    double freeSpaceGB = drive.TotalFreeSpace / (1024.0 * 1024 * 1024);
+                    double totalSizeGB = drive.TotalSize / (1024.0 * 1024 * 1024);
+                    Console.WriteLine($"Drive {drive.Name}: Free Space {freeSpaceGB:0.00} GB | Total Size {totalSizeGB:0.00} GB");
+                    var disk = new Disk_spaces
+                    {
+                        ip_address = ipAddress,
+                        name = drive.Name,
+                        free_disk_space = freeSpaceGB,
+                        total_disk_space = totalSizeGB,
+                    };
+                    disks.Add(disk);
+
                 }
             }
 
-            Console.WriteLine("Загруженность CPU: " + cpuCounter.NextValue() + " %");
-
-            string ipAddress = GetIPAddress();
-            Console.WriteLine("IP-адрес: " + ipAddress);
-
+            
 
             CreateMetricDto metricDto = new CreateMetricDto(
                 ipAddress,
                 cpuCounter.NextValue(),
-                ramCounterAvailable.NextValue(),
-                ramCounterAvailable.NextValue() + memoryKb / 1024);
+                availableMemory,
+                freeMemory,
+                disks
+            );
 
             return metricDto;
         }
+
+        private long GetTotalPhysicalMemory()
+        {
+            ObjectQuery query = new ObjectQuery("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+            {
+                ManagementObjectCollection results = searcher.Get();
+                foreach (ManagementObject result in results)
+                {
+                    return Convert.ToInt64(result["TotalPhysicalMemory"]);
+                }
+            }
+            return 0;
+        }
+
         private string GetIPAddress()
         {
             string? ipAddress = "";
@@ -76,7 +100,6 @@ namespace Client.GetMetrix
                         break;
                 }
             }
-
             return ipAddress;
         }
     }

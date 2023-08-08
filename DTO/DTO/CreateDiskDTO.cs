@@ -1,30 +1,29 @@
-﻿
+﻿using Domain.Domain;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-
-namespace Domain.Domain
+namespace DTO.DTO
 {
-    [Table("disk_spaces", Schema = "public")]
-
-    public class Disk_spaces : PersistentObject
+    public class CreateDiskDTO
     {
-
-
         [ForeignKey("metrics")]
         public string ip_address { get; set; }
         public string name { get; set; }
         public double total_disk_space { get; set; }
         public double free_disk_space { get; set; }
 
-        public Disk_spaces() { }
+        public CreateDiskDTO() { }
 
-        public Disk_spaces( Metrics metric,string name, double totalDiskSpace, double freeDiskSpace)
+        public CreateDiskDTO(Metrics metric, string name, double totalDiskSpace, double freeDiskSpace)
         {
             this.ip_address = metric.ip_address;
             this.name = name;
             total_disk_space = totalDiskSpace;
             free_disk_space = freeDiskSpace;
         }
-
     }
 }

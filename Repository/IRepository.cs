@@ -17,5 +17,5 @@ public interface IRepository<T> where T : PersistentObject
     void Create(T item);
     Task CreateAsync(T item);
     void Delete(T entity);
-    void Update(T entity, Guid Id);
+    void Update(T entity, string ip);
 }

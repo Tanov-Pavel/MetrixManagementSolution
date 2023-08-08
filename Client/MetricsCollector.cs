@@ -8,61 +8,45 @@ using System.Text.Json;
 
 WMetrics wMetrics = new WMetrics();
 LinuxMetrics linuxMetrics = new LinuxMetrics();
-
-short time = 5000;
-
+var Time = 0;
 var connection = new HubConnectionBuilder()
             .WithUrl("http://localhost:8088/chat")
             .Build();
 connection.StartAsync().Wait();
 
+
 CreateMetricDto createMetricDto = new CreateMetricDto();
 
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
+    
+
     while (true)
     {
-        Console.WriteLine("Windows");
         createMetricDto = wMetrics.GetMetrix();
-        Console.WriteLine();
-        Thread.Sleep(5000);
         var jsonmetric = JsonSerializer.Serialize(createMetricDto);
-        Console.WriteLine(jsonmetric);
-        connection.SendAsync("ReceiveMetrics", jsonmetric);
-
-        connection.InvokeCoreAsync("SendMetrics", args: new[]
+        await connection.InvokeCoreAsync("SendMetrics", args: new[]
         { jsonmetric });
-
-        connection.On<string>("ReceiveMessage", (message) =>
+        connection.On<int>("ReceiveMessage", (time) =>
         {
-            Console.WriteLine(message);
+            Time = time;
         });
-        Console.ReadKey();
+        Thread.Sleep(5000);
+
     }
 }
 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 {
     while (true)
     {
-        //Console.WriteLine("Linux");
-        //createMetricDto.GetMetrix();
-        //Console.WriteLine();
-        //Thread.Sleep(5000);
+        createMetricDto =linuxMetrics.GetMetrix();
         var jsonmetric = JsonSerializer.Serialize(createMetricDto);
-        Console.WriteLine(jsonmetric);
-        connection.SendAsync("ReceiveMetrics", jsonmetric);
-
-        connection.InvokeCoreAsync("SendMetrics", args: new[]
+        await connection.InvokeCoreAsync("SendMetrics", args: new[]
         { jsonmetric });
+        Thread.Sleep(Time);
 
-        connection.On<string>("ReceiveMessage", (message) =>
-        {
-            Console.WriteLine(message);
-        });
-        Console.ReadKey();
     }
-
     
-
-    
+   
 }
+

@@ -1,7 +1,4 @@
-using Domain.Domain;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.OpenApi.Models;
-using Repository;
 using Repository.Repositories;
 using Repository.Repositories.Interfaces;
 
@@ -12,6 +9,7 @@ namespace TestTask
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -20,17 +18,13 @@ namespace TestTask
             });
 
             builder.Services.AddSignalR();
+            builder.Services.AddScoped<IMetricsRepository, MetricsRepository>();
+            builder.Services.AddScoped<IDiskRepository, DiskRepository>();
+
             var app = builder.Build();
 
-            // void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-            //{
-            //    if (env.IsDevelopment())
-            //    {
-            //        app.UseDeveloperExceptionPage();
-            //    }
-            //    app.UseHttpsRedirection();
-            //    app.UseRouting();
-            //}
+            app.MapHub<SignalRChat>("/chat");
+            app.MapControllers();
 
             if (app.Environment.IsDevelopment())
             {
@@ -41,12 +35,10 @@ namespace TestTask
                 });
             }
 
-            app.MapHub<SignalRChat>("/chat");
+            app.UseHttpsRedirection();
+            app.UseAuthorization();
 
             app.MapControllers();
-
-            //var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-            //var hubContext = app.Services.GetRequiredService<IHubContext<SignalRChat>>();
 
             app.Run();
         }

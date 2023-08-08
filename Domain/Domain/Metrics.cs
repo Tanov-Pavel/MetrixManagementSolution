@@ -1,6 +1,8 @@
 ﻿namespace Domain.Domain;
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 [Table(name: "metrics", Schema = "public")]
 public class Metrics : PersistentObject
@@ -9,6 +11,8 @@ public class Metrics : PersistentObject
     public double cpu { get; set; }
     public double ram_free { get; set; }
     public double ram_total { get; set; }
+   
+
 
     public Metrics(string? ip_address, double cpu, double ram_free, double ram_total)
     {
