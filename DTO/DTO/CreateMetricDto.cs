@@ -10,11 +10,7 @@ namespace DTO.DTO
         public double ram_total { get; set; }
         public List<Disk_spaces> disk_Spaces { get; set; }
 
-        public CreateMetricDto()
-        {
-
-        }
-
+        public CreateMetricDto(){}
         public CreateMetricDto(string ip_address, double cpu, double ram_free, double ram_total, List<Disk_spaces> disk_Spaces)
         {
             this.ip_address = ip_address;

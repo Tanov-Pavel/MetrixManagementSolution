@@ -9,7 +9,6 @@ namespace TestTask
 {
     public class SignalRChat : Hub
     {
-        int Time = 0;
         private readonly IMetricsRepository _metricRepository;
         private readonly IDiskRepository _diskRepository;
 
@@ -20,8 +19,7 @@ namespace TestTask
         }
 
         public async Task SendMetrics(string message)
-        {
-            await Clients.All.SendAsync("ReceiveMessage", Time);
+        {         
             try
             {
                 // Deserialize the message to a DTO
@@ -48,23 +46,29 @@ namespace TestTask
                     }
                     else
                     {
-                        _metricRepository.Update(metric, objec.ip_address);
+                        _metricRepository.Update(metric, objec.id.ToString());
                     }
 
-                    var alldisks = _diskRepository.GetAll().ToList()
+                    var alldisks = _diskRepository
+                        .GetAll()
+                        .ToList()
                         ?? throw new Exception();
+
                     foreach (var disk in metrics.disk_Spaces)
                     {
+                        disk.name = disk.name.Replace("\\", "//");
+                        var check = alldisks
+                         .Where(x => x.ip_address == disk.ip_address && x.name ==disk.name )
+                         .FirstOrDefault();
                         
-                           var check =alldisks.Where(x => x.ip_address == disk.ip_address && x.name == disk.name)
-                            .FirstOrDefault();
+
                         if (check == null)
                         {
                             _diskRepository.Create(disk);
                         }
                         else
                         {
-                            _diskRepository.Update(disk, objec.ip_address);
+                            _diskRepository.Update(disk, check.id.ToString());
                         }
                     }
                 }

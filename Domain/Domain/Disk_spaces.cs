@@ -8,9 +8,6 @@ namespace Domain.Domain
 
     public class Disk_spaces : PersistentObject
     {
-
-
-        [ForeignKey("metrics")]
         public string ip_address { get; set; }
         public string name { get; set; }
         public double total_disk_space { get; set; }

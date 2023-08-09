@@ -16,16 +16,13 @@ namespace Client.GetMetrix
         public static PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
         public static PerformanceCounter ramCounterAvailable = new PerformanceCounter("Memory", "Available MBytes");
 
-
         public CreateMetricDto GetMetrix()
         {
             
             int processorCount = Environment.ProcessorCount;      
             long totalMemory = GetTotalPhysicalMemory();
             long usedMemory = Process.GetProcesses().Sum(x => x.WorkingSet64);
-
             int availableMemory = (int)ramCounterAvailable.NextValue();
-
             long freeMemory = totalMemory - usedMemory;
 
             Console.WriteLine("Processors count: " + processorCount);
@@ -53,12 +50,8 @@ namespace Client.GetMetrix
                         total_disk_space = totalSizeGB,
                     };
                     disks.Add(disk);
-
                 }
             }
-
-            
-
             CreateMetricDto metricDto = new CreateMetricDto(
                 ipAddress,
                 cpuCounter.NextValue(),

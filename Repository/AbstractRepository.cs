@@ -1,7 +1,4 @@
-﻿
-namespace Repository;
-
-using Domain;
+﻿using Domain;
 using Npgsql;
 using System;
 using System.Collections.Generic;
@@ -12,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+namespace Repository;
 public abstract class AbstractRepository<T> : IRepository<T> where T : PersistentObject
 {
     // The connection string for the database.
@@ -237,37 +235,38 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
     // Method to create a new entity in the database.
     public void Create(T item)
     {
-        var tableName = GetTableName();
-        var columns = GetColumnNames(item);
-        var values = MapEntityAnnotations(item);
-        var sql = $"INSERT INTO public.{tableName}({columns}) VALUES ({values})";
+        var tableName = GetTableName(); // Get the table name for the entity.
+        var columns = GetColumnNames(item); // Get the column names for the entity.
+        var values = MapEntityAnnotations(item); // Get the values to be inserted into columns.
+        var sql = $"INSERT INTO public.{tableName}({columns}) VALUES ({values})"; // Construct the SQL INSERT statement.
 
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = new NpgsqlConnection(_connectionString)) // Establish a connection to the database.
         {
-            DbCommand command = connection.CreateCommand();
-            command.CommandText = sql;
-            command.CommandType = CommandType.Text;
+            DbCommand command = connection.CreateCommand(); // Create a database command.
+            command.CommandText = sql; // Set the SQL command text.
+            command.CommandType = CommandType.Text; // Set the command type to text.
 
-            connection.Open();
+            connection.Open(); // Open the database connection.
 
-            // Binds the parameter values for each property of the entity.
-            foreach (var property in item.GetType().GetProperties().ToList())
+            // Bind the parameter values for each property of the entity.
+            foreach (var property in item.GetType()
+                .GetProperties()
+                .ToList())
             {
-                string columnName = property.GetCustomAttribute<ColumnAttribute>().Name;
+                string columnName = property.Name; // Get the column name from ColumnAttribute.
                 if (!string.IsNullOrEmpty(columnName))
                 {
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = columnName;
-                    parameter.Value = property.GetValue(item) ?? DBNull.Value;
-                    command.Parameters.Add(parameter);
+                    var parameter = command.CreateParameter(); // Create a parameter for the command.
+                    parameter.ParameterName = columnName; // Set the parameter name.
+                    parameter.Value = property.GetValue(item) ?? DBNull.Value; // Set the parameter value.
+                    command.Parameters.Add(parameter); // Add the parameter to the command.
                 }
             }
 
-            command.ExecuteNonQuery(); // Executes the SQL command to insert the entity.
+            command.ExecuteNonQuery(); // Execute the SQL command to insert the entity.
         }
     }
-
-    // Method to delete an entity from the database.
+    // Method to Delete a new entity in the database.
     public void Delete(T entity)
     {
         var tableName = GetTableName();
@@ -322,7 +321,7 @@ public abstract class AbstractRepository<T> : IRepository<T> where T : Persisten
         var tableName = GetTableName();
 
         string result = MapUpdeteEntity(entity); // Retrieves the UPDATE SQL statement.
-        var sql = $"UPDATE  public.{tableName} set {result} WHERE ip_address = '{ip}'";
+        var sql = $"UPDATE  public.{tableName} set {result} WHERE id = '{ip}'";
 
         try
         {

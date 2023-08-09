@@ -35,4 +35,8 @@
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DatabaseSchema\" />
+  </ItemGroup>
+
 </Project>
